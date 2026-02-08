@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { artists, festivalLineups, festivals, venues } from "@/db/schema";
+import { artists, artistSpotlights, festivalLineups, festivals, venues } from "@/db/schema";
 import { eq, gte, asc } from "drizzle-orm";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
@@ -63,6 +63,14 @@ export default async function ArtistDetailPage({
   const events = await getArtistEvents(artist.id);
   const genres = (artist.genres as string[]) || [];
 
+  // Fetch video clips from artist spotlights
+  const spotlights = await db
+    .select()
+    .from(artistSpotlights)
+    .where(eq(artistSpotlights.artistId, artist.id))
+    .limit(1);
+  const videoClips = (spotlights[0]?.videoClips as { sourceUrl: string; startSec: number; endSec: number; title: string }[]) || [];
+
   const links = [
     { label: "Resident Advisor", url: artist.raUrl, icon: "🔊" },
     { label: "Spotify", url: artist.spotifyUrl, icon: "🎵" },
@@ -119,6 +127,42 @@ export default async function ArtistDetailPage({
                 <span className="text-zinc-600">↗</span>
               </a>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Featured Sets */}
+      {videoClips.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-3 text-zinc-300">
+            Featured Sets ({videoClips.length})
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {videoClips.map((clip, i) => {
+              const videoId = clip.sourceUrl.split("v=")[1]?.split("&")[0];
+              if (!videoId) return null;
+              return (
+                <div
+                  key={i}
+                  className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50"
+                >
+                  <div className="aspect-video">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${videoId}?start=${clip.startSec}&autoplay=0`}
+                      title={clip.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm text-zinc-300 font-medium truncate">
+                      {clip.title}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
