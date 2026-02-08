@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { festivals, venues, festivalLineups, artists } from "@/db/schema";
 import { eq, gte, asc } from "drizzle-orm";
 import { format } from "date-fns";
+import Link from "next/link";
 
 export const revalidate = 3600; // revalidate every hour
 
@@ -59,12 +60,9 @@ export default async function Home() {
 
       <div className="grid gap-6">
         {events.map((event) => (
-          <a
+          <div
             key={event.id}
-            href={event.websiteUrl || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 hover:bg-zinc-900/50 transition"
+            className="group border border-zinc-800 rounded-xl p-6 hover:border-zinc-600 hover:bg-zinc-900/50 transition"
           >
             <div className="flex flex-col md:flex-row md:items-start gap-4">
               {/* Date badge */}
@@ -83,9 +81,12 @@ export default async function Home() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-semibold group-hover:text-purple-400 transition truncate">
+                <Link
+                  href={`/events/${event.slug}`}
+                  className="text-xl font-semibold hover:text-purple-400 transition truncate block"
+                >
                   {event.name}
-                </h2>
+                </Link>
                 <p className="text-zinc-500 text-sm mt-1">
                   📍 {event.venueName || "TBA"}
                   {event.venueCity ? `, ${event.venueCity}` : ""}
@@ -93,23 +94,29 @@ export default async function Home() {
                 {event.artists.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {event.artists.map((artist) => (
-                      <span
+                      <Link
                         key={artist.slug}
-                        className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded-full"
+                        href={`/artists/${artist.slug}`}
+                        className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded-full hover:bg-zinc-700 transition"
                       >
                         {artist.name}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}
-              </div>
-
-              {/* Arrow */}
-              <div className="flex-shrink-0 text-zinc-600 group-hover:text-zinc-400 transition">
-                ↗
+                {event.websiteUrl && (
+                  <a
+                    href={event.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-xs text-zinc-500 hover:text-zinc-300 mt-2 transition"
+                  >
+                    View on RA ↗
+                  </a>
+                )}
               </div>
             </div>
-          </a>
+          </div>
         ))}
 
         {events.length === 0 && (

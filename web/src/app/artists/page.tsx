@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { artists, festivalLineups, festivals } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
+import Link from "next/link";
 
 export const revalidate = 3600;
 
@@ -46,11 +47,9 @@ export default async function ArtistsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {allArtists.map((artist) => (
-          <a
+          <Link
             key={artist.id}
-            href={artist.raUrl || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/artists/${artist.slug}`}
             className="group block border border-zinc-800 rounded-xl p-5 hover:border-zinc-600 hover:bg-zinc-900/50 transition"
           >
             <h2 className="font-semibold text-lg group-hover:text-purple-400 transition">
@@ -66,9 +65,16 @@ export default async function ArtistsPage() {
               </div>
             )}
             {artist.raUrl && (
-              <p className="text-xs text-zinc-600 mt-2">View on RA ↗</p>
+              <a
+                href={artist.raUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-zinc-600 mt-2 hover:text-zinc-400 transition inline-block"
+              >
+                View on RA ↗
+              </a>
             )}
-          </a>
+          </Link>
         ))}
       </div>
     </div>
